@@ -54,5 +54,17 @@ freeline.py
 freeline/
 freeline_project_description.json
 
+# AndroidStudioDefault
+*.iml
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+
+
 # Other
 app/src/main/java/com/cardsystems/stopnet4/monitoring/QueryContainer.java
