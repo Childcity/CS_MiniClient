@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <PreferenceCategory
+        android:title="@string/connection_settings">
+
+        <EditTextPreference
+            android:defaultValue="@string/default_ip"
+            android:inputType="text"
+            android:key="ip_address"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/server_ip"
+            android:summary=" "/>
+
+        <EditTextPreference
+            android:defaultValue="@string/default_port"
+            android:inputType="number"
+            android:key="port"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/server_port"
+            android:summary=" "/>
+
+        <EditTextPreference
+            android:defaultValue="@string/default_query_timeout"
+            android:inputType="number"
+            android:key="query_timeout"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pause_between_update"
+            android:summary=" "/>
+
+        <EditTextPreference
+            android:defaultValue="/sdcard/query.sql"
+            android:key="query_path"
+            android:selectAllOnFocus="true"
+            android:singleLine="false"
+            android:title="Путь к Запросу"
+            android:summary=" "/>
+
+    </PreferenceCategory>
+</PreferenceScreen>

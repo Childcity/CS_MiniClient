@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">StopNet4 Мониторинг</string>
+    <string name="title_activity_monitoring">StopNet4 Мониторинг</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Настройки</string>
+    <string name="monitoring_item">Мониторинг</string>
+    <string name="company_name">Card Systems</string>
+    <string name="company_web_page">https://card-sys.com/ru</string>
+
+    <string name="connection_settings">Настройки подключения</string>
+    <string name="default_ip">192.168.0.105</string>
+    <string name="server_ip">Ip адрес сервера</string>
+    <string name="pause_between_update">Пауза между обновлением(мс.)</string>
+    <string name="server_port">Порт</string>
+    <string name="default_port">65042</string>
+    <string name="default_query_timeout">0</string>
+</resources>
