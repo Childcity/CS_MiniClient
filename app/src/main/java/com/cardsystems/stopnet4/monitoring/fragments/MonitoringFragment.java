@@ -1,13 +1,17 @@
 package com.cardsystems.stopnet4.monitoring.fragments;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.v4.widget.NestedScrollView;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,13 +28,27 @@ import com.cardsystems.stopnet4.monitoring.QueryContainer;
 import com.cardsystems.stopnet4.monitoring.R;
 
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
-public class MonitoringFragment extends Fragment {
-    private static final String ARG_PARAM1 = "param1";
+public class MonitoringFragment extends Fragment{
+    /*private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
     private String mParam1;
-    private String mParam2;
+    private String mParam2;*/
+
+    public static final int PROGRESSBAR_CHANGE = 1;
+
+    public static final String MONITORING_FRAGMENT_DATA = "MONITORING_FRAGMENT_DATA";
+
+    private boolean autoScrollChacked = true;
+
+    private int maxEventCount;
+
+    private int eventCount;
+
+    private DataReceiver dataReceiver;
 
     // for communication with Activity
     private OnSendToActivityListener mListener;
@@ -40,11 +58,15 @@ public class MonitoringFragment extends Fragment {
     // for showing info and foto of person
     private LinearLayout monitoringContent;
 
-    private Handler h;
+    private NestedScrollView monitoringScrollWidget;
 
-    private Thread t;
+    private Handler handler;
+
+    private Thread backThread;
 
     private CheckingTask chckTask;
+
+    static long oldTime;
 
     public MonitoringFragment() {
         // Required empty public constructor
@@ -61,10 +83,10 @@ public class MonitoringFragment extends Fragment {
 
     public static MonitoringFragment newInstance(String param1, String param2) {
         MonitoringFragment fragment = new MonitoringFragment();
-        Bundle args = new Bundle();
+        /*Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+        fragment.setArguments(args);*/
         return fragment;
     }
 
@@ -72,12 +94,16 @@ public class MonitoringFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
+        /*if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        }*/
 
-        h = new SafeHandler(this);
+        dataReceiver = new DataReceiver();
+        IntentFilter intentFilter = new IntentFilter(MONITORING_FRAGMENT_DATA);
+        getActivity().registerReceiver(dataReceiver, intentFilter);
+
+        handler = new SafeHandler(this);
     }
 
     public void onMessageReceive(Message msg){
@@ -90,11 +116,28 @@ public class MonitoringFragment extends Fragment {
                     if (!(msg.obj == null || imVie == null || edTxt == null)) {
                         imVie.setImageBitmap(((EventData) msg.obj).getBmp());
                         edTxt.setText(((EventData) msg.obj).getInfo());
+
+                        if(eventCount > maxEventCount) {
+                            monitoringContent.removeAllViews();
+                            eventCount = 1;
+                        }
+
                         monitoringContent.addView(imVie);
                         monitoringContent.addView(edTxt);
+                        eventCount++;
+
+                        long now = System.currentTimeMillis();
+                        Toast.makeText(monitoringContext, (now-oldTime)/1000.0+" сек.", Toast.LENGTH_SHORT)
+                                .show();
+                        oldTime = now;
+
+                        if(autoScrollChacked) {
+                            monitoringScrollWidget.fullScroll(View.FOCUS_DOWN);
+                            monitoringScrollWidget.fullScroll(View.FOCUS_DOWN);
+                        }
                     }
                 } catch (Exception e) {
-                    Log.e("HANDLER", "err:", e);
+                    Log.e("MonitFrag", "err:", e);
                 }
                 break;
             }
@@ -107,6 +150,10 @@ public class MonitoringFragment extends Fragment {
                 Toast.makeText(monitoringContext, "Sending query...", Toast.LENGTH_SHORT)
                         .show();
                 break;
+            }
+            case CheckingTask.NOROUTETOHOST_EXEPTION: {
+                Toast.makeText(monitoringContext, "Server is not online!", Toast.LENGTH_SHORT)
+                        .show();
             }
         }
     }
@@ -121,6 +168,7 @@ public class MonitoringFragment extends Fragment {
     public void onActivityCreated (Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         monitoringContent = getView().findViewById(R.id.monitoring_lin_lay);
+        monitoringScrollWidget = getView().findViewById(R.id.monitoring_scroll_widget);
     }
 
 
@@ -128,25 +176,28 @@ public class MonitoringFragment extends Fragment {
     public void onStart() {
         super.onStart();
         //start background task
-        chckTask = new CheckingTask(h);
+        chckTask = new CheckingTask(handler);
         chckTask.pause();
 
-        t = new Thread(chckTask);
-        t.start();
+        backThread = new Thread(chckTask);
+        backThread.start();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
         Toast.makeText(monitoringContext, "Resumed", Toast.LENGTH_SHORT)
                 .show();
 
-        //resume background task
+        eventCount = 1;
 
+        //check and update settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.getContext());
         String ipAddress = sharedPref.getString("ip_address", getString(R.string.default_ip));
         int port, timeout;
         try {
+            maxEventCount = Integer.parseInt(sharedPref.getString("max_event_count", getString(R.string.default_max_event_count)));
             port = Integer.parseInt(sharedPref.getString("port", getString(R.string.default_port)));
             timeout = Integer.parseInt(sharedPref.getString("query_timeout", getString(R.string.default_query_timeout)));
         }catch (Exception e){
@@ -156,7 +207,15 @@ public class MonitoringFragment extends Fragment {
 
                     String queryPath = sharedPref.getString("query_path", "/sdcard/query.sql");
                     try {
-                        QueryContainer.query = "query " + QueryContainer.getStringFromFile(queryPath) + "!@e\n";
+                        Date c = Calendar.getInstance().getTime();
+                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+                        String formattedDate = df.format(c);
+
+                        QueryContainer.query = "query "
+                                + QueryContainer.getStringFromFile(queryPath)
+                                    .replace("yyyy-mm-dd", formattedDate)
+                                + "!@e\n";
+
                     }catch (Exception e){
                         Toast.makeText(monitoringContext, e.getMessage(), Toast.LENGTH_LONG)
                                 .show();
@@ -164,7 +223,12 @@ public class MonitoringFragment extends Fragment {
                     }
 
         chckTask.updateConnectionSettings(ipAddress, port, timeout);
+
+        //resume background task
         chckTask.resume();
+
+        //send to activity to change status of progress bar
+        sendToActivity(PROGRESSBAR_CHANGE);
     }
 
     @Override
@@ -175,15 +239,16 @@ public class MonitoringFragment extends Fragment {
         //pause background task
         chckTask.pause();
 
+        //send to activity to change status of progress bar
+        sendToActivity(PROGRESSBAR_CHANGE);
+
         super.onPause();
     }
 
     @Override
     public void onStop() {
-
         //stop background task
         chckTask.stop();
-
         super.onStop();
     }
 
@@ -194,9 +259,9 @@ public class MonitoringFragment extends Fragment {
         //        .show();
     }
 
-    private void sendToActivity(Bitmap image, String info) {
+    private void sendToActivity(int what) {
         if (mListener != null) {
-            mListener.onSendToActivity(image, info);
+            mListener.onSendToActivityFromMonitoringFragment(what);
         }
     }
 
@@ -215,23 +280,23 @@ public class MonitoringFragment extends Fragment {
 
     @Override
     public  void onDestroy() {
-        if (h != null) {
-            h.removeCallbacksAndMessages(null);
-            h = null;
-
-            super.onDestroy();
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+            handler = null;
         }
+
+        super.onDestroy();
     }
 
     @Override
     public void onDetach() {
         mListener = null;
-
+        dataReceiver = null;
         super.onDetach();
     }
 
     public interface OnSendToActivityListener {
-        void onSendToActivity(Bitmap image, String info);
+        void onSendToActivityFromMonitoringFragment(int what);
     }
 
     static class SafeHandler extends Handler {
@@ -248,6 +313,22 @@ public class MonitoringFragment extends Fragment {
             if (fragment != null) {
                 fragment.onMessageReceive(msg);
             }
+        }
+    }
+
+    private class DataReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            int status = intent.getIntExtra(Monitoring.AUTOSCROLL_CHANGED, -1);
+
+            if(status == 1) {
+                autoScrollChacked = true;
+                monitoringScrollWidget.fullScroll(View.FOCUS_DOWN);
+            }
+            else
+                autoScrollChacked = false;
         }
     }
 }

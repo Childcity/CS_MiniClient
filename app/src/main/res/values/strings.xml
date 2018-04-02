@@ -17,4 +17,9 @@
     <string name="server_port">Порт</string>
     <string name="default_port">65042</string>
     <string name="default_query_timeout">0</string>
+    <string name="settings">Настройки</string>
+    <string name="product_name">StopNet4</string>
+    <string name="autoscroll">Автоскролинг</string>
+    <string name="default_max_event_count">5</string>
+    <string name="max_event_count_to_show">Максимальное количество отображаемых проходов</string>
 </resources>

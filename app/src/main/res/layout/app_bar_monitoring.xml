@@ -16,7 +16,29 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay">
+
+            <ProgressBar
+                android:id="@+id/toolbar_progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:visibility="invisible"/>
+                <!--android:indeterminateTint="#795548"
+                android:indeterminateTintMode="src_in"!-->
+
+            <Button
+                android:id="@+id/button_back"
+                android:layout_width="?attr/actionBarSize"
+                android:layout_height="?attr/actionBarSize"
+                android:visibility="invisible"
+                android:background="@drawable/ic_action_back"
+                android:backgroundTint="@android:color/white"
+                android:backgroundTintMode="src_in"
+                android:drawableTint="@android:color/white"
+                android:layout_gravity="end" />
+
+        </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
 

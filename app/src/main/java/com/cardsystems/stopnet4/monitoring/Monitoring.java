@@ -1,9 +1,8 @@
 package com.cardsystems.stopnet4.monitoring;
 
 import android.Manifest;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.graphics.Bitmap;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
@@ -11,7 +10,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -20,38 +18,29 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 
 import com.cardsystems.stopnet4.monitoring.fragments.MonitoringFragment;
 import com.cardsystems.stopnet4.monitoring.fragments.SettingsFragment;
 
 public class Monitoring extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        MonitoringFragment.OnSendToActivityListener {
+        MonitoringFragment.OnSendToActivityListener,
+        SettingsFragment.OnSendToActivityListener{
 
     private static int REQUEST_READ_STORAGE;
+
+    private Toolbar toolbar;
+
+    public static final String AUTOSCROLL_CHANGED = "AUTOSCROLL_CHANGED";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitoring);
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        setTitle("StopNet4");
-
-        //load default settings
-        PreferenceManager.setDefaultValues(this, R.xml.preference, false);
-
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                REQUEST_READ_STORAGE);
 
         /*
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -73,7 +62,22 @@ public class Monitoring extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        //fmonitoring = new MonitoringFragment();
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        // Load default settings
+        PreferenceManager.setDefaultValues(this, R.xml.preference, false);
+
+        // Request permission to read and write to internal sdcard
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                REQUEST_READ_STORAGE);
+
+        // Display the fragment as the main content.
+        getFragmentManager().beginTransaction()
+                .replace(R.id.monitoring_container, new MonitoringFragment(), "fmonitoring_tag")
+                .commit();
     }
 
     @Override
@@ -98,25 +102,36 @@ public class Monitoring extends AppCompatActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch (item.getItemId()){
+            case R.id.action_settings: {
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.monitoring_container, new SettingsFragment(), "fsettings_tag")
+                        .addToBackStack(null)
+                        .commit();
+            }break;
+            case R.id.action_autoscroll: {
+                Intent retIntent = new Intent(MonitoringFragment.MONITORING_FRAGMENT_DATA);
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            FragmentManager fragmentManager = getFragmentManager();
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                    retIntent.putExtra(AUTOSCROLL_CHANGED, 0);
+                } else {
+                    item.setChecked(true);
+                    retIntent.putExtra(AUTOSCROLL_CHANGED, 1);
+                }
 
-            /*if(fragmentManager.findFragmentByTag("fsettings_tag") != null) {
-                return true;
-            }*/
+                sendBroadcast(retIntent);
+            }break;
+            case android.R.id.home: {
+                onBackPressed();
+            }break;
 
-            // Display the fragment as the main content.
-            fragmentManager.beginTransaction()
-                    .replace(R.id.monitoring_container, new SettingsFragment(), "fsettings_tag")
-                    .addToBackStack(null)
-                    .commit();
-            return true;
+            default: {
+                return super.onOptionsItemSelected(item);
+            }
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -128,17 +143,10 @@ public class Monitoring extends AppCompatActivity
         FragmentTransaction ftrans = getFragmentManager().beginTransaction();
 
         if (id == R.id.nav_monitoring) {
-            FragmentManager fragmentManager = getFragmentManager();
-
-            /*if(fragmentManager.findFragmentByTag("fmonitoring_tag") != null) {
-
-                return true;
-            }*/
+            /*if(fragmentManager.findFragmentByTag("fmonitoring_tag") != null) {return true;}*/
 
             // Display the fragment as the main content.
-            fragmentManager.beginTransaction()
-                    .replace(R.id.monitoring_container, new MonitoringFragment(), "fmonitoring_tag")
-                    .commit();
+            ftrans.replace(R.id.monitoring_container, new MonitoringFragment(), "fmonitoring_tag");
 
         } /*else if (id == R.id.nav_gallery) {
 
@@ -160,7 +168,40 @@ public class Monitoring extends AppCompatActivity
     }
 
     @Override
-    public void onSendToActivity(Bitmap image, String info) {
-        //Do some on this event
+    public void onSendToActivityFromMonitoringFragment(int what) {
+        switch (what){
+            case MonitoringFragment.PROGRESSBAR_CHANGE: {
+
+                // Set Title
+                setTitle(getString(R.string.monitoring_item));
+
+                ProgressBar prgBar = findViewById(R.id.toolbar_progress_bar);
+
+                if(prgBar != null) {
+                    if(prgBar.getVisibility() == ProgressBar.INVISIBLE)
+                        prgBar.setVisibility(ProgressBar.VISIBLE);
+                    else
+                        prgBar.setVisibility(ProgressBar.INVISIBLE);
+                }
+
+            }break;
+        }
     }
+
+    @Override
+    public void onSendToActivityFromSettingsFragment(int what) {
+        switch (what){
+            case SettingsFragment.SETTINGSSTATUS_CHANGE: {
+                // Set settings item in menu invisible if user in settings. Else make it visible
+                if(toolbar.getMenu().findItem(R.id.action_settings).isVisible()) {
+                    toolbar.getMenu().setGroupVisible(R.id.settings_group, false);
+                    setTitle(getString(R.string.action_settings));
+                }else{
+                    if(this.hasWindowFocus())
+                        toolbar.getMenu().setGroupVisible(R.id.settings_group, true);
+                }
+            }
+        }
+    }
+
 }

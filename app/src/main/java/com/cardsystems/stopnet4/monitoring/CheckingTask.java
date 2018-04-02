@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.NoRouteToHostException;
 import java.net.Socket;
 
 public class CheckingTask implements Runnable {
@@ -18,19 +19,21 @@ public class CheckingTask implements Runnable {
     public static final int UPDATE_INFO = 1;
     public static final int SENDING_INFO = 2;
     public static final int TIMEOUT_EXEPTION = -1;
+    public static final int NOROUTETOHOST_EXEPTION = -2;
 
-    private String server_ip = "192.168.0.105"; //your computer IP address
-    private int server_port = 65042;
-    private int timeout = 5000;
 
-    private Handler h;
+    private String server_ip = ""; //your computer IP address
+    private int server_port = -1;
+    private int timeout = -1;
+
+    private Handler handler;
 
     private volatile boolean running = true;
     private volatile boolean paused = false;
     private final Object pauseLock = new Object();
 
-    public CheckingTask(Handler h){
-        this.h = h;
+    public CheckingTask(Handler handler){
+        this.handler = handler;
     }
 
     @Override
@@ -81,8 +84,8 @@ public class CheckingTask implements Runnable {
 
                             if (mServerMessage.equals("ping OK")) {
 
-                                if (h != null)
-                                    h.sendEmptyMessage(SENDING_INFO);
+                                //if (handler != null)
+                                //    handler.sendEmptyMessage(SENDING_INFO);
 
                                 if (! mBufferOut.checkError()) {
                                     mBufferOut.print(QueryContainer.query);
@@ -95,9 +98,9 @@ public class CheckingTask implements Runnable {
                                     }
 
                                     //Log.d("EVENT", String.valueOf(Thread.currentThread().getId()) + running + mServerMessage);
-                                    if (h != null) {
-                                        msg = h.obtainMessage(UPDATE_INFO, EventParser.getEventData(mServerMessage));
-                                        h.sendMessage(msg);
+                                    if (handler != null) {
+                                        msg = handler.obtainMessage(UPDATE_INFO, EventParser.getEventData(mServerMessage));
+                                        handler.sendMessage(msg);
                                     }
                                 }
                             }
@@ -111,10 +114,19 @@ public class CheckingTask implements Runnable {
                         socket.close();
                     }
                 }catch (ConnectException e){
-                    if (h != null)
-                        h.sendEmptyMessage(TIMEOUT_EXEPTION);
+                    if (handler != null)
+                        handler.sendEmptyMessage(TIMEOUT_EXEPTION);
+                    Thread.currentThread();
+                    Thread.sleep(2000);
+                }catch (NoRouteToHostException e){
+                    if (handler != null)
+                        handler.sendEmptyMessage(NOROUTETOHOST_EXEPTION);
+                    Thread.currentThread();
+                    Thread.sleep(2000);
                 } catch (Exception e) {
                     Log.e("TCP", "SOCKET CONNECTION Error", e);
+                    Thread.currentThread();
+                    Thread.sleep(2000);
                 }
 
                 Log.d("THREAD", String.valueOf(Thread.currentThread().getId()) + " sleeping...:");

@@ -1,9 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
+    <group
+        android:id="@+id/settings_group"
+        android:visible="true">
+
+        <item
+            android:id="@+id/action_settings"
+            android:orderInCategory="100"
+            android:title="@string/action_settings"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/action_autoscroll"
+            android:orderInCategory="101"
+            android:title="@string/autoscroll"
+            android:checkable="true"
+            android:checked="true"
+            app:showAsAction="never"  />
+    </group>
+
 </menu>

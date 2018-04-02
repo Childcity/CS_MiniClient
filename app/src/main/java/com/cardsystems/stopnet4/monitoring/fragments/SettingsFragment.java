@@ -18,7 +18,12 @@ import com.cardsystems.stopnet4.monitoring.R;
 
 public class SettingsFragment extends PreferenceFragment
         implements SharedPreferences.OnSharedPreferenceChangeListener {
-    public static final String KEY_PREF_IP = "pref_number_of_exercises";
+
+    public static final int SETTINGSSTATUS_CHANGE = 1;
+
+    // for communication with Activity
+    private OnSendToActivityListener mListener;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +35,8 @@ public class SettingsFragment extends PreferenceFragment
     @Override
     public void onResume() {
         super.onResume();
+
+        sendToActivity(SETTINGSSTATUS_CHANGE);
 
         for (int i = 0; i < getPreferenceScreen().getPreferenceCount(); ++i) {
             Preference preference = getPreferenceScreen().getPreference(i);
@@ -46,6 +53,12 @@ public class SettingsFragment extends PreferenceFragment
     }
 
     @Override
+    public void onPause() {
+        sendToActivity(SETTINGSSTATUS_CHANGE);
+        super.onPause();
+    }
+
+    @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         updatePreference(findPreference(key), key);
     }
@@ -59,5 +72,33 @@ public class SettingsFragment extends PreferenceFragment
         }
         SharedPreferences sharedPrefs = getPreferenceManager().getSharedPreferences();
         preference.setSummary(sharedPrefs.getString(key, "NaN"));
+    }
+
+    @Override
+    public void onDetach() {
+        mListener = null;
+        super.onDetach();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        if (context instanceof MonitoringFragment.OnSendToActivityListener) {
+            mListener = (SettingsFragment.OnSendToActivityListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    private void sendToActivity(int what) {
+        if (mListener != null) {
+            mListener.onSendToActivityFromSettingsFragment(what);
+        }
+    }
+
+    public interface OnSendToActivityListener {
+        void onSendToActivityFromSettingsFragment(int what);
     }
 }

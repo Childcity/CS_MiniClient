@@ -24,6 +24,18 @@
             android:summary=" "/>
 
         <EditTextPreference
+            android:defaultValue="/sdcard/query.sql"
+            android:key="query_path"
+            android:selectAllOnFocus="true"
+            android:singleLine="false"
+            android:title="Путь к Запросу"
+            android:summary=" "/>
+
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Настройки отображения">
+
+        <EditTextPreference
             android:defaultValue="@string/default_query_timeout"
             android:inputType="number"
             android:key="query_timeout"
@@ -33,11 +45,12 @@
             android:summary=" "/>
 
         <EditTextPreference
-            android:defaultValue="/sdcard/query.sql"
-            android:key="query_path"
+            android:defaultValue="@string/default_max_event_count"
+            android:inputType="number"
+            android:key="max_event_count"
             android:selectAllOnFocus="true"
-            android:singleLine="false"
-            android:title="Путь к Запросу"
+            android:singleLine="true"
+            android:title="@string/max_event_count_to_show"
             android:summary=" "/>
 
     </PreferenceCategory>
