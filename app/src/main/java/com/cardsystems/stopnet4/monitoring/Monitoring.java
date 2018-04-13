@@ -68,6 +68,11 @@ public class Monitoring extends AppCompatActivity
 
         // Load default settings
         PreferenceManager.setDefaultValues(this, R.xml.preference, false);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
         // Request permission to read and write to internal sdcard
         ActivityCompat.requestPermissions(this,

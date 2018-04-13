@@ -6,27 +6,13 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.cardsystems.stopnet4.monitoring.fragments.MonitoringFragment">
 
-    <android.support.v4.widget.NestedScrollView
-        android:id="@+id/monitoring_scroll_widget"
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/monitoring_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
         android:scrollbars="vertical"
         android:keepScreenOn="true"
-        android:scrollbarAlwaysDrawVerticalTrack="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:id="@+id/monitoring_lin_lay">
-
-    </LinearLayout>
-
-    </android.support.v4.widget.NestedScrollView>
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"/>
 
 </FrameLayout>

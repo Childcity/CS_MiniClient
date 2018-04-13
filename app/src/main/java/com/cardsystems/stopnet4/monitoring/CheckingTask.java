@@ -70,7 +70,7 @@ public class CheckingTask implements Runnable {
                     //here you must put your computer's IP address.
                     InetAddress serverAddr = InetAddress.getByName(server_ip);
 
-                    Log.d("TCP", "C: Connecting... \"" + server_ip + ":" + server_port + "\"");
+                    //Log.d("TCP", "C: Connecting... \"" + server_ip + ":" + server_port + "\"");
 
                     Socket socket = new Socket(serverAddr, server_port);
 
@@ -129,7 +129,7 @@ public class CheckingTask implements Runnable {
                     Thread.sleep(2000);
                 }
 
-                Log.d("THREAD", String.valueOf(Thread.currentThread().getId()) + " sleeping...:");
+                //Log.d("THREAD", String.valueOf(Thread.currentThread().getId()) + " sleeping...:");
                 Thread.currentThread();
                 Thread.sleep(timeout);
 

@@ -4,6 +4,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * Created by Maxwell on 21.03.2018.
  */
@@ -53,8 +57,9 @@ public class EventParser {
             String info = event.substring(0, indexBeforeFoto - separator.length());
             info += event.substring(event.indexOf(separator, indexBeforeFoto));
 
+            //SimpleDateFormat df = new SimpleDateFormat("mm:ss");
             return new EventData( getBitmap(event.substring(indexBeforeFoto, event.indexOf(separator, indexBeforeFoto))),
-                    info.replaceAll(separator, "\n"));
+                    info.replaceAll(separator, "\n") /*+ df.format(Calendar.getInstance().getTime())*/);
 
         }catch (Exception e) {
             Log.e("PARSER ", "Error:", e);
