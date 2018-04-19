@@ -74,6 +74,9 @@ public class Monitoring extends AppCompatActivity
     protected void onStart() {
         super.onStart();
 
+        if(null != getFragmentManager().findFragmentByTag("fmonitoring_tag"))
+            return;
+
         // Request permission to read and write to internal sdcard
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
@@ -174,38 +177,40 @@ public class Monitoring extends AppCompatActivity
 
     @Override
     public void onSendToActivityFromMonitoringFragment(int what) {
-        switch (what){
-            case MonitoringFragment.PROGRESSBAR_CHANGE: {
+        switch (what) {
+            case MonitoringFragment.PROGRESSBAR_SHOW: {
 
                 // Set Title
                 setTitle(getString(R.string.monitoring_item));
 
                 ProgressBar prgBar = findViewById(R.id.toolbar_progress_bar);
 
-                if(prgBar != null) {
-                    if(prgBar.getVisibility() == ProgressBar.INVISIBLE)
-                        prgBar.setVisibility(ProgressBar.VISIBLE);
-                    else
-                        prgBar.setVisibility(ProgressBar.INVISIBLE);
-                }
+                if (prgBar != null)
+                    prgBar.setVisibility(ProgressBar.VISIBLE);
 
-            }break;
+            } break;
+            case MonitoringFragment.PROGRESSBAR_HIDE: {
+
+                ProgressBar prgBar = findViewById(R.id.toolbar_progress_bar);
+
+                if (prgBar != null)
+                    prgBar.setVisibility(ProgressBar.INVISIBLE);
+
+            } break;
         }
     }
 
     @Override
     public void onSendToActivityFromSettingsFragment(int what) {
         switch (what){
-            case SettingsFragment.SETTINGSSTATUS_CHANGE: {
-                // Set settings item in menu invisible if user in settings. Else make it visible
-                if(toolbar.getMenu().findItem(R.id.action_settings).isVisible()) {
-                    toolbar.getMenu().setGroupVisible(R.id.settings_group, false);
-                    setTitle(getString(R.string.action_settings));
-                }else{
-                    if(this.hasWindowFocus())
-                        toolbar.getMenu().setGroupVisible(R.id.settings_group, true);
-                }
-            }
+            case SettingsFragment.SETTINGSFRAGMENT_VISIBLE: {
+                // Set settings item in menu visible if user in settings.
+                toolbar.getMenu().setGroupVisible(R.id.settings_group, false);
+                setTitle(getString(R.string.action_settings));
+            } break;
+            case SettingsFragment.SETTINGSFRAGMENT_INVISIBLE:{
+                    toolbar.getMenu().setGroupVisible(R.id.settings_group, true);
+            } break;
         }
     }
 

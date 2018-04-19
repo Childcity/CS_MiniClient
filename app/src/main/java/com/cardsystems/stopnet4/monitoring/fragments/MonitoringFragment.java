@@ -36,7 +36,8 @@ import java.util.Objects;
 
 public class MonitoringFragment extends Fragment{
 
-    public static final int PROGRESSBAR_CHANGE = 1;
+    public static final int PROGRESSBAR_SHOW = 1;
+    public static final int PROGRESSBAR_HIDE = 2;
 
     public static final String MONITORING_FRAGMENT_DATA = "MONITORING_FRAGMENT_DATA";
 
@@ -175,9 +176,10 @@ public class MonitoringFragment extends Fragment{
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 //resume background task
-                chckTask.resume();
+                if(chckTask != null)
+                    chckTask.resume();
                 //send to activity to change status of progress bar
-                sendToActivity(PROGRESSBAR_CHANGE);
+                sendToActivity(PROGRESSBAR_SHOW);
             }
         }.execute();
     }
@@ -186,20 +188,19 @@ public class MonitoringFragment extends Fragment{
     public void onPause() {
         /*Toast.makeText(monitoringContext, "Paused", Toast.LENGTH_SHORT)
                 .show();*/
-
         //pause background task
-        chckTask.pause();
-
+        if(chckTask != null)
+            chckTask.pause();
         //send to activity to change status of progress bar
-        sendToActivity(PROGRESSBAR_CHANGE);
-
+        sendToActivity(PROGRESSBAR_HIDE);
         super.onPause();
     }
 
     @Override
     public void onStop() {
         //stop background task
-        chckTask.stop();
+        if(chckTask != null)
+            chckTask.stop();
         super.onStop();
     }
 

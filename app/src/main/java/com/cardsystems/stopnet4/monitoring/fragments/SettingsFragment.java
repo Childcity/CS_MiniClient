@@ -19,7 +19,8 @@ import com.cardsystems.stopnet4.monitoring.R;
 public class SettingsFragment extends PreferenceFragment
         implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    public static final int SETTINGSSTATUS_CHANGE = 1;
+    public static final int SETTINGSFRAGMENT_VISIBLE = 1;
+    public static final int SETTINGSFRAGMENT_INVISIBLE = 2;
 
     // for communication with Activity
     private OnSendToActivityListener mListener;
@@ -36,7 +37,7 @@ public class SettingsFragment extends PreferenceFragment
     public void onResume() {
         super.onResume();
 
-        sendToActivity(SETTINGSSTATUS_CHANGE);
+        sendToActivity(SETTINGSFRAGMENT_VISIBLE);
 
         for (int i = 0; i < getPreferenceScreen().getPreferenceCount(); ++i) {
             Preference preference = getPreferenceScreen().getPreference(i);
@@ -54,7 +55,7 @@ public class SettingsFragment extends PreferenceFragment
 
     @Override
     public void onPause() {
-        sendToActivity(SETTINGSSTATUS_CHANGE);
+        sendToActivity(SETTINGSFRAGMENT_INVISIBLE);
         super.onPause();
     }
 

@@ -22,11 +22,10 @@
                 android:id="@+id/toolbar_progress_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                style="Pr"
                 android:layout_gravity="end"
                 android:visibility="invisible"/>
                 <!--android:indeterminateTint="#795548"
-                android:indeterminateTintMode="src_in"!-->
+                android:indeterminateTintMode="src_in"
 
             <Button
                 android:id="@+id/button_back"
@@ -37,7 +36,7 @@
                 android:backgroundTint="@android:color/white"
                 android:backgroundTintMode="src_in"
                 android:drawableTint="@android:color/white"
-                android:layout_gravity="end" />
+                android:layout_gravity="end" />!-->
 
         </android.support.v7.widget.Toolbar>
 
